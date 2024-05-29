@@ -14,7 +14,7 @@ nlp = spacy.load("en_core_web_sm")
 annotator = errant.load('en', nlp)
 errant_path = os.path.join(os.path.dirname("./"), 'errant_verbose.json')
 errant_verbose = json.load(open(errant_path, "r"))
-sent_detector = nltk.data.load('tokenizers/punkt/english.pickle')
+sent_detector = nltk.data.load('./nltk_data/tokenizers/punkt/english.pickle')
 
 # Load text editor (TinyLlama)
 text_editor = Llama(
