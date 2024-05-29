@@ -1,11 +1,10 @@
 FROM python:3.10
 
-WORKDIR /app
+USER user
+ENV HOME=/home/user \
+	PATH=/home/user/.local/bin:$PATH
 
-USER root 
-RUN mkdir -p /root/.cache 
-RUN chown -R $USER:$USER /root/.cache 
-USER $USER 
+WORKDIR $HOME/app
 
 RUN mkdir ./texteditor-model
 COPY . .
