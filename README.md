@@ -44,6 +44,7 @@ git clone https://github.com/LETHEVIET/t5nyllama.git
 ```shell
 pip3 install -r requirements.txt
 python3 -m spacy download en_core_web_sm
+mkdir ./texteditor-model
 python3 download_dependencies.py
 ```
 
