@@ -281,7 +281,7 @@ with gr.Blocks() as demo:
                 label="Information",
                 scale=1,
                 lines=3,
-                value="i can has cheezburger.",
+                value="Information will show here.",
             )
 
             post_check = gr.Checkbox(label="Check grammaticality after text generation.", value=True)
@@ -290,7 +290,7 @@ with gr.Blocks() as demo:
             msg = gr.Textbox(
                 label="Input",
                 scale=3,
-                value="Information will show here.",
+                value="i can has cheezburger.",
             )
 
             result = gr.HighlightedText(
