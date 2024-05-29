@@ -1,0 +1,9 @@
+spacy
+transformers
+gradio
+errant
+nltk
+llama-cpp-python
+gdown
+tensorflow
+tf-keras
