@@ -1,7 +1,7 @@
 FROM python:3.10
 
 WORKDIR /app
-
+RUN mkdir ./texteditor-model
 COPY . .
 
 RUN apt-get update && apt-get -y upgrade
