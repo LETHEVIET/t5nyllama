@@ -1,6 +1,12 @@
 FROM python:3.10
 
 WORKDIR /app
+
+USER root 
+RUN mkdir -p /root/.cache 
+RUN chown -R $USER:$USER /root/.cache 
+USER $USER 
+
 RUN mkdir ./texteditor-model
 COPY . .
 
