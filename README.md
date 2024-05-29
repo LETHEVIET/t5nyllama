@@ -1,14 +1,11 @@
 ---
-title: {{title}}
-emoji: {{emoji}}
-colorFrom: {{colorFrom}}
-colorTo: {{colorTo}}
-sdk: {{sdk}}
-sdk_version: "{{sdkVersion}}"
-app_file: app.py
+title: T5nyllama
+emoji: 👀
+colorFrom: yellow
+colorTo: purple
+sdk: docker
 pinned: false
 ---
-
 
 ## Lightweight English Text Editing Assistant (t5nyllama)
 This repository houses the source code for t5nyllama, a lightweight English text editing assistant designed to provide a simple and efficient way to enhance your writing.
