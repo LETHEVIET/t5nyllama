@@ -15,11 +15,11 @@ annotator = errant.load('en', nlp)
 errant_path = os.path.join(os.path.dirname("./"), 'errant_verbose.json')
 errant_verbose = json.load(open(errant_path, "r"))
 sent_detector = nltk.data.load('./nltk_data/tokenizers/punkt/english.pickle')
-
+print("Loading models ...")
 # Load text editor (TinyLlama)
 text_editor = Llama(
     model_path="./texteditor-model/coedit-tinyllama-chat-bnb-4bit-unsloth.Q4_K_M.gguf",
-    verbose=False
+    verbose=True
 )
 print("text editor is loaded!")
 
