@@ -1,10 +1,10 @@
 ---
 title: T5nyllama
-emoji: 👀
-colorFrom: yellow
-colorTo: purple
+emoji: 🐳
+colorFrom: purple
+colorTo: gray
 sdk: docker
-pinned: false
+app_port: 7860
 ---
 
 ## Lightweight English Text Editing Assistant (t5nyllama)
