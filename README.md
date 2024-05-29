@@ -81,6 +81,4 @@ python finetuning_tinyllama.py
 * **ALLECS: A Lightweight Language Error Correction System:** https://github.com/nusnlp/ALLECS 
 * **Python Bindings for llama.cpp:** https://github.com/abetlen/llama-cpp-python
 * **Gradio: Build Machine Learning Web Apps — in Python:** https://github.com/gradio-app/gradio
-## Demo
 
-[Include a GIF or screenshot demonstrating the application's functionality.]
