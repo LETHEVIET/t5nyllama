@@ -32,6 +32,9 @@ t5nyllama uses a two-step approach:
 
 - **Local Application:** Prioritizes offline functionality, allowing you to edit text without requiring an internet connection.
 - **Lightweight Design:** Minimizes resource consumption, making the application suitable for a wide range of devices and systems.
+  **Screenshot**
+
+![](./assets/screenshot.png)
 
 ## Installation
 
