@@ -25,4 +25,4 @@ RUN python3 download_dependencies.py
 EXPOSE 7860
 ENV GRADIO_SERVER_NAME="0.0.0.0"
 
-ENTRYPOINT ["python", "app.py"]
+ENTRYPOINT ["python", "-u", "app.py"]

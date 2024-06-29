@@ -1,34 +1,37 @@
-import gradio as gr
-import errant
-import spacy
-import os
 import json
+import os
+
+import errant
+import gradio as gr
 import nltk
-from utils import get_random_prompt, instruction_prompts
+import spacy
 from llama_cpp import Llama
 from transformers import pipeline
+
 import config
+from utils import get_random_prompt, instruction_prompts
 
 # Load necessary models and resources
 nlp = spacy.load("en_core_web_sm")
-annotator = errant.load('en', nlp)
-errant_path = os.path.join(os.path.dirname("./"), 'errant_verbose.json')
+annotator = errant.load("en", nlp)
+errant_path = os.path.join(os.path.dirname("./"), "errant_verbose.json")
 errant_verbose = json.load(open(errant_path, "r"))
-sent_detector = nltk.data.load('./nltk_data/tokenizers/punkt/english.pickle')
+sent_detector = nltk.data.load("./nltk_data/tokenizers/punkt/english.pickle")
 print("Loading models ...")
 # Load text editor (TinyLlama)
 text_editor = Llama(
     model_path="./texteditor-model/coedit-tinyllama-chat-bnb-4bit-unsloth.Q4_K_M.gguf",
-    verbose=True
+    verbose=True,
 )
 print("text editor is loaded!")
 
 # Load grammar corrector (Flan-T5)
 grammar_corrector = pipeline(
-    'text2text-generation',
-    'pszemraj/flan-t5-large-grammar-synthesis',
+    "text2text-generation",
+    "pszemraj/flan-t5-large-grammar-synthesis",
 )
 print("grammar corrector is loaded!")
+
 
 def correcting_text(src: str) -> str:
     """
@@ -40,7 +43,7 @@ def correcting_text(src: str) -> str:
     Returns:
         The grammatically corrected text.
     """
-    lines = src.split('\n')
+    lines = src.split("\n")
     sentences = []
     line_idx = []
     for l_idx, line in enumerate(lines):
@@ -57,14 +60,16 @@ def correcting_text(src: str) -> str:
     for i in range(num_iter):
         start = i * config.BATCH_SIZE
         end = min((i + 1) * config.BATCH_SIZE, len(sentences))
-        
-        final_outs += grammar_corrector(sentences[start:end], max_length=128, num_beams=5, early_stopping=True)
-        
+
+        final_outs += grammar_corrector(
+            sentences[start:end], max_length=128, num_beams=5, early_stopping=True
+        )
 
     for i in range(len(final_outs)):
-        out_lines[line_idx[i]] += final_outs[i]["generated_text"] + " " 
+        out_lines[line_idx[i]] += final_outs[i]["generated_text"] + " "
 
     return "\n".join(out_lines)
+
 
 def annotate_text(src: str, tag: str, analyze: bool = True) -> list:
     """
@@ -80,46 +85,44 @@ def annotate_text(src: str, tag: str, analyze: bool = True) -> list:
         - (edit_text, edit_type)
     """
     out = {"edits": []}
-    out['source'] = src
+    out["source"] = src
     src_doc = annotator.parse(src)
     tag_doc = annotator.parse(tag)
     cur_edits = annotator.annotate(src_doc, tag_doc)
 
-        
     for e in cur_edits:
         out["edits"].append((e.o_start, e.o_end, e.type, e.c_str))
     result = []
     last_pos = 0
     if analyze:
-        tokens = out['source']
+        tokens = out["source"]
         if isinstance(tokens, str):
-            tokens = tokens.split(' ')
-        edits = out['edits']
+            tokens = tokens.split(" ")
+        edits = out["edits"]
         offset = 0
         for edit in edits:
             if isinstance(edit, dict):
-                e_start = edit['start']
-                e_end = edit['end']
-                e_type = edit['type']
-                e_rep = edit['cor']
+                e_start = edit["start"]
+                e_end = edit["end"]
+                e_type = edit["type"]
+                e_rep = edit["cor"]
             elif isinstance(edit, tuple):
                 e_start = edit[0]
                 e_end = edit[1]
                 e_type = edit[2]
                 e_rep = edit[3]
             else:
-                raise ValueError("Data type {} is not supported."\
-                        .format(type(edit)))
+                raise ValueError("Data type {} is not supported.".format(type(edit)))
 
             e_rep = e_rep.strip()
             op_type = e_type[0]
             pos_type = e_type[2:]
             errant_info = errant_verbose[pos_type]
-            title = errant_info["title"]
-            
-            result.append((' '.join(tokens[last_pos:e_start + offset]), None))
-            
-            ori_str = ' '.join(tokens[e_start + offset:e_end + offset]).strip()
+            errant_info["title"]
+
+            result.append((" ".join(tokens[last_pos : e_start + offset]), None))
+
+            ori_str = " ".join(tokens[e_start + offset : e_end + offset]).strip()
             if pos_type == "ORTH":
                 # check if it's a casing issue
                 if ori_str.lower() == e_rep.lower():
@@ -142,19 +145,20 @@ def annotate_text(src: str, tag: str, analyze: bool = True) -> list:
                     msg = errant_info[op_type]
                 else:
                     msg = errant_verbose["Default"][op_type]
-            
-            msg = '<p>' + msg.format(ori=ori_str, cor=e_rep) + '</p>'
 
-            e_cor =  e_rep.split()
+            msg = "<p>" + msg.format(ori=ori_str, cor=e_rep) + "</p>"
+
+            e_cor = e_rep.split()
             len_cor = len(e_cor)
-            tokens[e_start + offset:e_end + offset] = e_cor
-            last_pos = e_start + offset + len_cor 
+            tokens[e_start + offset : e_end + offset] = e_cor
+            last_pos = e_start + offset + len_cor
             offset = offset - (e_end - e_start) + len_cor
             result.append((e_rep, pos_type))
-        out = ' '.join(tokens)
-        result.append((' '.join(tokens[last_pos:]), None))
+        out = " ".join(tokens)
+        result.append((" ".join(tokens[last_pos:]), None))
     print(result)
     return result
+
 
 def choices2promts() -> list:
     """
@@ -165,7 +169,8 @@ def choices2promts() -> list:
     """
     return instruction_prompts.keys()
 
-with gr.Blocks() as demo: 
+
+with gr.Blocks() as demo:
 
     def turn_off_legend(msg: str) -> gr.update:
         """
@@ -233,11 +238,13 @@ with gr.Blocks() as demo:
                 if "role" in delta:
                     pass
                 elif "content" in delta:
-                    response+=delta['content']
-                    res = [(response, None), ]
+                    response += delta["content"]
+                    res = [
+                        (response, None),
+                    ]
                     print(res)
                     yield res, "Generating output ..."
-            
+
             if post_check:
                 yield [(response, None)], "Checking Grammar ..."
                 response = correcting_text(response)
@@ -248,7 +255,7 @@ with gr.Blocks() as demo:
             e_edit = annotate_text(text, response)
         else:
             e_edit = [(response, None)]
-        
+
         yield e_edit, "Done."
 
     def handle_highlight_selection():
@@ -270,13 +277,13 @@ with gr.Blocks() as demo:
                 multiselect=False,
                 label="Choose your instruction",
                 interactive=True,
-                scale=0
+                scale=0,
             )
 
             with gr.Row() as row2:
                 clear = gr.Button("Clear", scale=-1)
                 submit = gr.Button("submit", scale=-1)
-                
+
             info_msg = gr.Textbox(
                 label="Information",
                 scale=1,
@@ -284,7 +291,9 @@ with gr.Blocks() as demo:
                 value="Information will show here.",
             )
 
-            post_check = gr.Checkbox(label="Check grammaticality after text generation.", value=True)
+            post_check = gr.Checkbox(
+                label="Check grammaticality after text generation.", value=True
+            )
             annotate = gr.Checkbox(label="Highlight different", value=True)
         with gr.Column(scale=2) as col2:
             msg = gr.Textbox(
@@ -294,23 +303,24 @@ with gr.Blocks() as demo:
             )
 
             result = gr.HighlightedText(
-                label="Result",
-                combine_adjacent=True,
-                show_legend=False,
-                scale=3
+                label="Result", combine_adjacent=True, show_legend=False, scale=3
             )
-        
+
     res_msg = gr.Textbox(
         scale=0,
         visible=False,
         label="Ouput",
     )
-    
-    msg.submit(turn_off_legend, msg, result).then(bot, [instruction, msg, post_check, annotate], [result, info_msg]).then(turn_on_legend, annotate, result)
+
+    msg.submit(turn_off_legend, msg, result).then(
+        bot, [instruction, msg, post_check, annotate], [result, info_msg]
+    ).then(turn_on_legend, annotate, result)
 
     clear.click(lambda: None, None, result, queue=False)
 
-    submit.click(turn_off_legend, msg, result).then(bot, [instruction, msg, post_check, annotate], [result, info_msg]).then(turn_on_legend, annotate, result)
+    submit.click(turn_off_legend, msg, result).then(
+        bot, [instruction, msg, post_check, annotate], [result, info_msg]
+    ).then(turn_on_legend, annotate, result)
 
     result.select(handle_highlight_selection, [], [])
 

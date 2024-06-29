@@ -1,3 +1,5 @@
+import random
+
 GEC = [
     "Fix grammar",
     "Fix grammar in this sentence",
@@ -26,7 +28,7 @@ GEC = [
     "Remove grammatical mistakes",
     "Fix the grammar mistakes",
     "Fix grammatical mistakes Clarity Clarify the sentence",
-    ]
+]
 Clarify = [
     "Clarify this sentence",
     "Clarify this text",
@@ -68,8 +70,8 @@ Clarify = [
     "Simplify this paragraph",
     "Simplify this text",
     "Use simpler wording",
-    "Make this easier to understand"
-    ]
+    "Make this easier to understand",
+]
 Coherence = [
     "Fix coherence",
     "Fix coherence in this sentence",
@@ -94,8 +96,8 @@ Coherence = [
     "Make the text more consistent",
     "Improve the consistency of the text",
     "Make the text clearer",
-    "Improve the coherence of the text"
-    ]
+    "Improve the coherence of the text",
+]
 Formality_Style_Transfer = [
     "Formalize",
     "Improve formality",
@@ -116,8 +118,8 @@ Formality_Style_Transfer = [
     "Rewrite this more formally",
     "Write in a formal manner",
     "Write in a more formal manner",
-    "Rewrite in a more formal manner"
-    ]
+    "Rewrite in a more formal manner",
+]
 Neutralization = [
     "Remove POV",
     "Remove POVs",
@@ -140,7 +142,7 @@ Neutralization = [
     "Make this text less biased Paraphrasing Paraphrase the sentence",
     "Paraphrase this sentence",
     "Paraphrase this text",
-    ]
+]
 Paraphrase = [
     "Write a paraphrase for the sentence",
     "Write a paraphrased version of the sentence",
@@ -151,12 +153,8 @@ Paraphrase = [
     "Rephrase this sentence",
     "Rewrite this text",
     "Reword this text",
-    "Rephrase this text"
-    ]
-
-
-import random
-import os
+    "Rephrase this text",
+]
 
 instruction_prompts = {
     "Grammar Error Correction": GEC,
@@ -166,6 +164,7 @@ instruction_prompts = {
     "Neutralization": Neutralization,
     "Paraphrase": Paraphrase,
 }
+
 
 def get_prompt_list(instruction_type: str) -> list:
     """
@@ -179,6 +178,7 @@ def get_prompt_list(instruction_type: str) -> list:
     """
     return instruction_prompts[instruction_type]
 
+
 def get_random_prompt(instruction_type: str) -> str:
     """
     Returns a random prompt from the list of prompts for the given instruction type.
@@ -190,4 +190,3 @@ def get_random_prompt(instruction_type: str) -> str:
         A random prompt from the list of prompts for the instruction type.
     """
     return random.choice(instruction_prompts[instruction_type])
-

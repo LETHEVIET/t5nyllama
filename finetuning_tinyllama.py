@@ -1,9 +1,16 @@
-from unsloth import FastLanguageModel
+import datasets
+import pandas as pd
 import torch
+from sklearn.model_selection import train_test_split
+from transformers import TrainingArguments
+from trl import SFTTrainer
+from unsloth import FastLanguageModel
 
 # Define model parameters
 max_seq_length = 4096  # Choose any! We auto support RoPE Scaling internally!
-dtype = None  # None for auto detection. Float16 for Tesla T4, V100, Bfloat16 for Ampere+
+dtype = (
+    None  # None for auto detection. Float16 for Tesla T4, V100, Bfloat16 for Ampere+
+)
 load_in_4bit = True  # Use 4bit quantization to reduce memory usage. Can be False.
 
 # Load the model and tokenizer
@@ -19,8 +26,15 @@ model, tokenizer = FastLanguageModel.from_pretrained(
 model = FastLanguageModel.get_peft_model(
     model,
     r=32,  # Choose any number > 0 ! Suggested 8, 16, 32, 64, 128
-    target_modules=["q_proj", "k_proj", "v_proj", "o_proj",
-                    "gate_proj", "up_proj", "down_proj",],
+    target_modules=[
+        "q_proj",
+        "k_proj",
+        "v_proj",
+        "o_proj",
+        "gate_proj",
+        "up_proj",
+        "down_proj",
+    ],
     lora_alpha=32,
     lora_dropout=0,  # Currently only supports dropout = 0
     bias="none",  # Currently only supports bias = "none"
@@ -30,10 +44,6 @@ model = FastLanguageModel.get_peft_model(
     loftq_config=None,  # And LoftQ
 )
 
-# Data preparation
-import pandas as pd
-from sklearn.model_selection import train_test_split
-import datasets
 
 # Load the dataset
 train = datasets.load_dataset("grammarly/coedit", split="train").to_pandas()
@@ -41,20 +51,18 @@ val = datasets.load_dataset("grammarly/coedit", split="validation").to_pandas()
 
 # Data cleaning and preparation
 data = pd.concat([train, val])
-data[['instruction', 'input']] = data['src'].str.split(': ', n=1, expand=True)
+data[["instruction", "input"]] = data["src"].str.split(": ", n=1, expand=True)
 data = data.rename(columns={"tgt": "output"})
 data = data.drop(columns=["_id", "src"])
 
 # Stratify based on task for balanced splits
-stratify_col = data['task']
+stratify_col = data["task"]
 
 # Split the data into train and test sets
 train_df, test_df = train_test_split(
-    data,
-    test_size=0.2,
-    random_state=42,
-    stratify=stratify_col
+    data, test_size=0.2, random_state=42, stratify=stratify_col
 )
+
 
 def formatting_prompts_func(examples, tokenizer):
     """
@@ -77,24 +85,31 @@ def formatting_prompts_func(examples, tokenizer):
             {"role": "assistant", "content": output},
         ]
         text = tokenizer.apply_chat_template(
-            message, tokenize=False, add_generation_prompt=False)
+            message, tokenize=False, add_generation_prompt=False
+        )
         texts.append(text)
-    return {"text": texts, }
+    return {
+        "text": texts,
+    }
+
 
 # Create datasets from pandas DataFrames
 train_ds = datasets.Dataset.from_pandas(train_df)
 test_ds = datasets.Dataset.from_pandas(test_df)
 
 # Map the formatting function to the datasets for chat format conversion
-train_ds = train_ds.map(formatting_prompts_func, fn_kwargs={"tokenizer": tokenizer}, batched=True,)
-test_ds = test_ds.map(formatting_prompts_func, fn_kwargs={"tokenizer": tokenizer}, batched=True,)
+train_ds = train_ds.map(
+    formatting_prompts_func,
+    fn_kwargs={"tokenizer": tokenizer},
+    batched=True,
+)
+test_ds = test_ds.map(
+    formatting_prompts_func,
+    fn_kwargs={"tokenizer": tokenizer},
+    batched=True,
+)
 
-print(train_ds[0]['text'])
-
-# Fine-tuning with trl
-from trl import SFTTrainer
-from transformers import TrainingArguments
-
+print(train_ds[0]["text"])
 # Define training arguments
 trainer = SFTTrainer(
     model=model,
@@ -145,7 +160,9 @@ used_memory_for_lora = round(used_memory - start_gpu_memory, 3)
 used_percentage = round(used_memory / max_memory * 100, 3)
 lora_percentage = round(used_memory_for_lora / max_memory * 100, 3)
 print(f"{trainer_stats.metrics['train_runtime']} seconds used for training.")
-print(f"{round(trainer_stats.metrics['train_runtime'] / 60, 2)} minutes used for training.")
+print(
+    f"{round(trainer_stats.metrics['train_runtime'] / 60, 2)} minutes used for training."
+)
 print(f"Peak reserved memory = {used_memory} GB.")
 print(f"Peak reserved memory for training = {used_memory_for_lora} GB.")
 print(f"Peak reserved memory % of max memory = {used_percentage} %.")
@@ -157,4 +174,4 @@ model.save_pretrained("coedit-tinyllama-chat-bnb-4bit")  # Local saving
 tokenizer.save_pretrained("coedit-tinyllama-chat-bnb-4bit")
 
 # Evaluate the model (Optional)
-#trainer.evaluate()
+# trainer.evaluate()
